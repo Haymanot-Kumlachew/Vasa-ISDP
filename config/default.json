@@ -1,0 +1,4 @@
+{
+  "mongoURLAtlas": "mongodb+srv://Haymanot:vasaengineering@cluster0.bldzj.mongodb.net/isdp_vasa?retryWrites=true&w=majority",
+  "mongoURLLocal": "mongodb://localhost/ISDP"
+}
