@@ -1,24 +1,19 @@
-const User = require('../models/user');
+const jwt = require('jsonwebtoken')
 
-//region user authentication
-const userAuthentication=async(req,res)=>{
-    console.log(JSON.stringify(req.body))
-
+const auth = (req, res, next) =>{
     try {
-        const user = await User.findByCredentials(req, res, req.body.email, req.body.password);
-        if (user) {
-            const token = await user.generateAuthToken();
-            res.status(200).send({user, token});
-        }
-    } catch (error) {
-        res.status(500).send('Server error ' + error);
+        const token = req.header("Authorization")
+        if(!token) return res.status(400).json({msg: "no token"})
+
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) =>{
+            if(err) return res.status(400).json({msg: "Invalid Authentication"})
+
+            req.user = user
+            next()
+        })
+    } catch (err) {
+        return res.status(500).json({msg: err.message})
     }
 }
-//endregion
 
-
-module.exports = {
-    userAuthentication
-
-
-}
+module.exports = auth

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const config = require('config');
-const db = config.get('mongoURLAtlas');
+const db = config.get('mongoURLLocal');
 
 mongoose.Promise = global.Promise;
 
@@ -12,7 +12,7 @@ const connectDB = async () => {
         });
         console.log('MongoDB Connected.')
     } catch (e) {
-        console.error("amanan"+e.message);
+        console.error("the error is "+e.message);
         // Exit process with failure
         process.exit(1);
     }

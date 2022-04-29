@@ -6,12 +6,7 @@ const jwt = require('jsonwebtoken');
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'please enter name'],
-        validate(value){
-            if(!validator.name(value)){
-                throw new Error('invalid name')
-            }
-        }
+        required: [true, 'please enter name']
     },
     email: {
         type: String,
@@ -39,6 +34,9 @@ const userSchema = new mongoose.Schema({
     phoneNumber: {
         type:Number,
         required: [true, 'please enter phone number']
+    },
+    gender: {
+        type:String 
     },
     vasaID:{
         type:String,
@@ -72,7 +70,7 @@ userSchema.pre('save', async function(next) {
 
 // region userSchema Method that can be accessed directly from User
 userSchema.statics.findByCredentials = async (req, res, email, password) => {
-    const user = await User.findOne({email}).populate('userType');
+    const user = await users.findOne({email})//.populate('role');
     if (!user) {
         await res.status(400).json({errors: [{msg: 'Invalid Credentials'}]});
     }
@@ -86,12 +84,15 @@ userSchema.statics.findByCredentials = async (req, res, email, password) => {
 };
 
 // region userSchema Method that can be accessed from User individual instance
-userSchema.methods.generateAuthToken = async function () {
-    const user = this;
-    const token = jwt.sign({"_id": user._id.toString(),"name":user.name}, "123456789");
-    user.tokens = user.tokens.concat({token});
-    await user.save();
-    return token;
-};
+// userSchema.methods.generateAuthToken = async function () {
+//     const user = this;
+//     // const token = jwt.sign({"_id": user._id.toString(),"name":user.name}, "123456789");
+//     const token = jwt.sign({"name":user.name}, "123456789")
+//     user.tokens = user.tokens.concat({token});
+//     await user.save();
+//     return token;
+// };
 
-module.exports = mongoose.model('users', userSchema)
+const User = mongoose.model('users', userSchema);
+
+module.exports = User;
