@@ -9,6 +9,7 @@ const path = require('path')
 
 
 const userRoute = require('./routes/user')
+const reportRoute = require('./routes/clockReport')
 const connectDB = require('./config/db');
 
 connectDB();
@@ -20,6 +21,7 @@ app.use(bodyParser.json())
 app.use(cors());
 
 app.use('/api/users', userRoute);
+app.use('/api/report', reportRoute);
 
 const port = process.env.PORT || 2000;
 app.listen(port, () => console.log(`Listening on port ${port}`));

@@ -8,12 +8,13 @@ const reportSchema = new mongoose.Schema({
         required: true
     },
     reporter:{
-        type: ObjectId,
+        type:  mongoose.Schema.Types.ObjectId,
         required: true
     },
     teamLeader: {
-        type: ObjectId,
+        type:  mongoose.Schema.Types.ObjectId,
         required: true,
+        ref:'users'
         //default: {reporter: new mongoose.Reporter}
     },
     numberOfWorkers:{
@@ -53,13 +54,14 @@ const reportSchema = new mongoose.Schema({
         // contentType: String
     }],
     reportTime:{
-        type:Date
+        type:Date,
+        default: Date.now
     },
     site:{
         type:String,
     },
     location:{
-        type:MongooseMap
+        // type:mongoose.map(mongoose.)
     }
 },
 {

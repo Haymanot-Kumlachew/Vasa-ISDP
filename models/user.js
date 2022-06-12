@@ -72,12 +72,12 @@ userSchema.pre('save', async function(next) {
 userSchema.statics.findByCredentials = async (req, res, email, password) => {
     const user = await users.findOne({email})//.populate('role');
     if (!user) {
-        await res.status(400).json({errors: [{msg: 'Invalid Credentials'}]});
+        await res.status(400).json({errors: [{message: 'Invalid Credentials'}]});
     }
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-        await res.status(400).json({errors: [{msg: 'Invalid Credentials'}]});
+        await res.status(400).json({errors: [{message: 'Invalid Credentials'}]});
     }
 
     return user;

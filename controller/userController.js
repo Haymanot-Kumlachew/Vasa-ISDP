@@ -8,9 +8,9 @@ const userController = {
         try{
             const {name, email, password, phoneNumber, vasaID, role, site, token} = req.body;
             const user = await User.findOne({email})
-            if(user) return res.status(400).json({msg: "the email already exists"})
+            if(user) return res.status(400).json({message: "the email already exists"})
             if(name ==="" || email === "" || password === "" ){
-                return  res.status(400).json ({msg:"Empty fields"})}
+                return  res.status(400).json ({message:"Empty fields"})}
             
             const newUser = new User({
                 name, email, password, phoneNumber, vasaID, role, site, token
@@ -19,8 +19,8 @@ const userController = {
             await newUser.save()
             return res.status(200).json({message: "Registered successfully"});
         }
-        catch(e){
-            return  res.status(500).json({msg: e.message})
+        catch(error){
+            return  res.status(500).json({message: error.message})
         }
     },
     login: async (req, res) =>{
@@ -30,10 +30,10 @@ const userController = {
             if (email == "" || password == "") res.json({status: "Failed", message: "Empty credentials supplied",})
             //check if user exists
             const user = await User.findOne({email})
-            if (!user) return res.status(400).json({msg: "User not found"})
+            if (!user) return res.status(400).json({message: "User not found"})
             const isMatch = await bcrypt.compare(password, user.password)
             if(!isMatch)
-                return res.status(400).json({msg: "Incorrect password."})
+                return res.status(400).json({message: "Incorrect password."})
 
             // If login success , create access token and refresh token
             const accesstoken = createAccessToken({id: user._id})
@@ -45,44 +45,44 @@ const userController = {
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7d
             })
 
-            res.json({accesstoken, msg: "Login Successful"})
+            res.json({accesstoken, message: "Login Successful"})
         }
-        catch(e){
-            return res.status(500).json({msg: e.message})
+        catch(error){
+            return res.status(500).json({message: error.message})
         }
     },
     logout: async (req, res) =>{
         try {
             res.clearCookie('refreshtoken', {path: '/api/users/refresh_token'})
-            return res.json({msg: "Logged out"})
-        } catch (err) {
-            return res.status(500).json({msg: err.message})
+            return res.json({message: "Logged out"})
+        } catch (error) {
+            return res.status(500).json({message: error.message})
         }
     },
     getUser: async (req, res) =>{
         try {
             let user = await User.findById(req.user.id).select('-password')
-            if(!user) return res.status(400).json({msg: "User does not exist."})
+            if(!user) return res.status(400).json({message: "User does not exist."})
 
             res.json(user)
-        } catch (err) {
-            console.log("the error is " + e.message)
-            return res.status(500).json({msg: err.message})
+        } catch (error) {
+            console.log("the error is " + error.message)
+            return res.status(500).json({message: error.message})
         }
     },
     deleteUser:  ('/:id',(req, res) => {
         try {
             const userID = req.query.id;
-            User.findByIdAndDelete(userID, function (err, docs){
-                if (err){
-                    console.log(err)
+            User.findByIdAndDelete(userID, function (error, docs){
+                if (error){
+                    console.log(error)
                 }
                 else{
                     return res.status(201).json("user successfully deleted");
                 }
             })
         } catch (error) {
-            res.status(500).send('Server error: ' + error);
+            res.status(500).send('Server error: ' + error.message);
     
         }
     }),
@@ -95,9 +95,9 @@ const userController = {
             const user = await User.findOneAndUpdate({_id: userId}, { password: newPassword}, {new: true});
             if(user) return res.status(200).json("password updated successfully");
             }
-            catch(err)
+            catch(error)
             {
-                return res.status(500).json({msg: err.message})
+                return res.status(500).json({message: error.message})
             }
     },
     updateUserInfo: async (req, res) => {
@@ -123,27 +123,27 @@ const userController = {
                 })
             await user.save()
             if (user) {
-                // await res.status(201).json({msg: "update successful", user});
-                await res.status(201).json({msg: "update successful"});
+                // await res.status(201).json({message: "update successful", user});
+                await res.status(201).json({message: "update successful"});
             }
-        }catch(e){
-            return res.status(500).json({msg: e.message})
+        }catch(error){
+            return res.status(500).json({message: error.message})
         }
     },
     refreshToken: (req, res) =>{
         try {
             const rf_token = req.cookies.refreshtoken;
-            if(!rf_token) return res.status(400).json({msg: "Please Login or Register"})
-            jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) =>{
-                if(err) return res.status(400).json({msg: "Not authenticated"})
+            if(!rf_token) return res.status(400).json({message: "Please Login or Register"})
+            jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (error, user) =>{
+                if(error) return res.status(400).json({message: "Not authenticated"})
 
                 const accesstoken = createAccessToken({id: user.id})
 
                 return res.json({user, accesstoken})
             })
 
-        } catch (err) {
-            return res.status(500).json({msg: err.message})
+        } catch (error) {
+            return res.status(500).json({message: error.message})
         }
     },
     listAllUsers: async (req, res) => {
@@ -151,8 +151,8 @@ const userController = {
             let users = await User.find({})
             await res.status(201).json({
                 users})
-        }  catch(e){
-            res.status(500).send(e);
+        }  catch(error){
+            res.status(500).send(error.message);
         }
     }   
 }

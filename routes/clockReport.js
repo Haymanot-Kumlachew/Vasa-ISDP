@@ -5,16 +5,12 @@ const auth = require('../middleware/auth')
 const reportController = require('../controller/reportController')
 
 
-router.post('/register', reportController.addReport);
-// router.post('/login', userController.login)
-// router.get('/logout', auth, userController.logout)
-// router.get('/refresh_token', userController.refreshToken);
-// router.get('/infor', auth,  userController.getUser)
-// router.delete('/delete', userController.deleteUser)
-// router.put('/update/password', auth, userController.updatePassword);
+router.post('/create', reportController.addReport);
+router.post('/delete', reportController.deletedReport);
+router.post('/approval', reportController.adminUpdates);
+
 // router.put('/update/info', auth, userController.updateUserInfo)
-// // console.log('in user routes')
-// router.post('/list_all', auth, userController.listAllUsers)
 
 
-// module.exports = router;
+
+module.exports = router;
