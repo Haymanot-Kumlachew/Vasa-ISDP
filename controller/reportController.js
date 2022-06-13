@@ -1,23 +1,74 @@
 const Report = require('../models/report')
+const users = require('../models/user')
+const multer = require('multer');
+
+// const FILE_TYPE_MAP = {
+//     'image/png': 'png',
+//     'image/jpeg': 'jpeg',
+//     'image/jpg': 'jpg'
+// };
+
+// const storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//         const isValid = FILE_TYPE_MAP[file.mimetype];
+//         let uploadError = new Error('invalid image type');
+
+//         if (isValid) {
+//             uploadError = null;
+//         }
+//         cb(uploadError, 'public/uploads');
+//     },
+//     filename: function (req, file, cb) {
+//         const fileName = file.originalname.split(' ').join('-');
+//         const extension = FILE_TYPE_MAP[file.mimetype];
+//         cb(null, `${fileName}-${Date.now()}.${extension}`);
+//     }
+// });
+
+// const uploadOptions = multer({ storage: storage });
 
 const reportController = {
-    addReport: async (req, res) => {
+    addReport:  ('/:id', async (req, res) => {
         try{
+            // const file = req.file;
+            // if (!file) return res.status(400).send('No image in the request');
+
+            // const fileName = file.filename;
+            // const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+
+            const reporterId = req.query.id;
             //const workers = req.body.workers
-            const {reportType, teamLeader, 
-                numberOfWorkers, workers, taskList, progress, 
-                tools, reportMessage, reportImages, 
-                //reportTime, location
+            const {
+                reportType,
+                teamLeader,
+                numberOfWorkers, 
+                workers, 
+                taskList,
+                progress, 
+                tools, 
+                reportMessage, 
+                reportImages, 
+                location,
+                //reportTime, reporter
                 site} = req.body;
-            const {reporter} = req.query;
+           
             if(teamLeader ==="" || reportMessage === "" || reportImages === "" ){
                 return  res.status(400).json ({message:"Empty fields"})}
 
             const newReport = new Report({
-                reportType, teamLeader, numberOfWorkers, 
-                workers, taskList, progress, tools, reportMessage, 
-                reportImages,reporter, 
-                //reportTime, location
+                reportType,
+                teamLeader, 
+                numberOfWorkers, 
+                workers, 
+                taskList, 
+                progress, 
+                tools, 
+                reportMessage, 
+                // reportImages:`${basePath}${fileName}`,
+                reporter:reporterId,
+                location,
+                site
+                //reportTime
             })
             await newReport.save()
             return res.status(200).json({message: "Reported Successfully"});
@@ -25,7 +76,7 @@ const reportController = {
         catch(e){
             return  res.status(500).json({message: e.message})
         }
-    },
+    }),
     deletedReport: ('/:id',(req, res) => {
         try{
             const reportID = req.query.id;
@@ -61,6 +112,22 @@ const reportController = {
         }catch(e){
             return res.status(500).json({message: e.message})
         }
+    },
+    getReports: async (req, res) => {
+        const report = await Report.find(filter).populate('users');
+
+        if(!report) {
+            res.status(500).json({success: false})
+        } 
+        res.send(report);
+    },
+    gerRepot: async (req, res) => {
+        const report = await Report.findById(req.params.id).populate('users');
+
+        if(!report) {
+            res.status(500).json({success: false})
+        } 
+        res.send(report);
     }
 }
 

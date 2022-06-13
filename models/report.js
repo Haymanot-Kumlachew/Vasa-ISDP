@@ -9,7 +9,10 @@ const reportSchema = new mongoose.Schema({
     },
     reporter:{
         type:  mongoose.Schema.Types.ObjectId,
+        ref: 'users',
         required: true
+        // ref: 'Category'
+        
     },
     teamLeader: {
         type:  mongoose.Schema.Types.ObjectId,
@@ -19,18 +22,23 @@ const reportSchema = new mongoose.Schema({
     },
     numberOfWorkers:{
         type: Number
+
     },
     workers:[{
         name:String,
         code:String
     }],
-    taskList:[String],
-    progress:[String],
+    taskList:[{ 
+        type: String
+    }],
+    progress:[{
+        type: String
+    }],
     tools:[{
         name:String,
-        amount: Number,
+        amount:Number,
         model:String,
-        size: String
+        size:String
     }],
     approvalStatus: {
         type: Boolean,

@@ -1,7 +1,8 @@
 //const bodyParser = require('body-parser');
-const User = require('../models/user')
-const bcrypt = require ('bcryptjs')
-const jwt = require('jsonwebtoken')
+const User = require('../models/user');
+const bcrypt = require ('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 
 const userController = {
     addNewUser: async (req, res) => {
@@ -10,11 +11,11 @@ const userController = {
             const user = await User.findOne({email})
             if(user) return res.status(400).json({message: "the email already exists"})
             if(name ==="" || email === "" || password === "" ){
-                return  res.status(400).json ({message:"Empty fields"})}
+                return  res.status(400).json ({message:"Empty fields"})};
             
             const newUser = new User({
                 name, email, password, phoneNumber, vasaID, role, site, token
-            })
+            });
 
             await newUser.save()
             return res.status(200).json({message: "Registered successfully"});
