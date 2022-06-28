@@ -1,0 +1,16 @@
+[
+    {
+        "status":"",
+        "data":{
+            "_id":"",
+            "name":"",
+            "email":"",
+            "phoneNumber":"",
+            "gender":"",
+            "vasaID":"",
+            "role":"",
+            "site":"",
+            "id":""
+        }
+    }
+]

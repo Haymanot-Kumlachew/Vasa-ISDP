@@ -1,0 +1,21 @@
+[
+    {
+        "status":"",
+        "data":{
+            "report":{
+                "reportType":"",
+                "reporter":{
+                    "_id":"",
+                    "name":"",
+                    "email":"",
+                    "phoneNumber":"",
+                    "gender":"",
+                    "vasaID":"",
+                    "role":"",
+                    "site":"",
+                    "id":""
+                }
+            }
+        }
+    }
+]

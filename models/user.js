@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
         }
     },
     phoneNumber: {
-        type:Number,
+        type:String,
         required: [true, 'please enter phone number']
     },
     gender: {
@@ -82,6 +82,14 @@ userSchema.statics.findByCredentials = async (req, res, email, password) => {
 
     return user;
 };
+
+userSchema.virtual('id').get(function () {
+    return this._id.toHexString();
+});
+
+userSchema.set('toJSON', {
+    virtuals: true,
+});
 
 // region userSchema Method that can be accessed from User individual instance
 // userSchema.methods.generateAuthToken = async function () {

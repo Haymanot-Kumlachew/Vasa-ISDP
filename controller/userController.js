@@ -46,7 +46,7 @@ const userController = {
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7d
             })
 
-            res.json({accesstoken, message: "Login Successful"})
+            res.status(200).json({accesstoken, message: "Login Successful"})
         }
         catch(error){
             return res.status(500).json({message: error.message})
@@ -65,7 +65,7 @@ const userController = {
             let user = await User.findById(req.user.id).select('-password')
             if(!user) return res.status(400).json({message: "User does not exist."})
 
-            res.json(user)
+            res.status(200).json({data: user})
         } catch (error) {
             console.log("the error is " + error.message)
             return res.status(500).json({message: error.message})
@@ -79,7 +79,7 @@ const userController = {
                     console.log(error)
                 }
                 else{
-                    return res.status(201).json("user successfully deleted");
+                    return res.status(201).json({message:"user successfully deleted"});
                 }
             })
         } catch (error) {
@@ -94,7 +94,7 @@ const userController = {
             const pass =  bcrypt.genSaltSync(10)
             const newPassword = await bcrypt.hashSync(req.body.password, pass);
             const user = await User.findOneAndUpdate({_id: userId}, { password: newPassword}, {new: true});
-            if(user) return res.status(200).json("password updated successfully");
+            if(user) return res.status(200).json({message:"password updated successfully"});
             }
             catch(error)
             {
@@ -140,7 +140,7 @@ const userController = {
 
                 const accesstoken = createAccessToken({id: user.id})
 
-                return res.json({user, accesstoken})
+                return res.status(200).json({accesstoken})
             })
 
         } catch (error) {
@@ -150,8 +150,7 @@ const userController = {
     listAllUsers: async (req, res) => {
         try{
             let users = await User.find({})
-            await res.status(201).json({
-                users})
+            await res.status(201).json({users})
         }  catch(error){
             res.status(500).send(error.message);
         }

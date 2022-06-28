@@ -1,6 +1,9 @@
 const Report = require('../models/report')
-const users = require('../models/user')
+const user = require('../models/user')
 const multer = require('multer');
+const fs = require('fs');
+const User = require('../models/user');
+const mongoose = require('mongoose');
 
 // const FILE_TYPE_MAP = {
 //     'image/png': 'png',
@@ -8,76 +11,129 @@ const multer = require('multer');
 //     'image/jpg': 'jpg'
 // };
 
-// const storage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//         const isValid = FILE_TYPE_MAP[file.mimetype];
-//         let uploadError = new Error('invalid image type');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // const isValid = FILE_TYPE_MAP[file.mimetype];
+        //let uploadError = new Error('invalid image type');
 
-//         if (isValid) {
-//             uploadError = null;
-//         }
-//         cb(uploadError, 'public/uploads');
-//     },
-//     filename: function (req, file, cb) {
-//         const fileName = file.originalname.split(' ').join('-');
-//         const extension = FILE_TYPE_MAP[file.mimetype];
-//         cb(null, `${fileName}-${Date.now()}.${extension}`);
-//     }
-// });
+        const dir = "./public/uploads"
 
-// const uploadOptions = multer({ storage: storage });
+        if(!fs.existsSync(dir)){
+            fs.mkdir(dir);
+        }
+
+        // if (isValid) {
+        //     uploadError = null;
+        // }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        // const fileName = file.originalname.split(' ').join('-');
+        // const extension = FILE_TYPE_MAP[file.mimetype];
+        // cb(null, `${fileName}-${Date.now()}.${extension}`);
+        cb(null, file.originalname);
+    }
+});
+
+const uploadOptions = multer({ storage: storage }).array('reportImages',10);
 
 const reportController = {
-    addReport:  ('/:id', async (req, res) => {
+    addReport:  async (req, res) =>{  
+            
+            // const category = await Category.findById(req.body.category);
+            // if(!category) return res.status(400).send('Invalid Category')
         try{
-            // const file = req.file;
-            // if (!file) return res.status(400).send('No image in the request');
+            var newReport = new Report;
+            let task =[];
+            task = req.body.taskList;
+            console.log({message:'the task list found are: ' + task})
 
-            // const fileName = file.filename;
-            // const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+            uploadOptions(req, res, function(error){
+                if(error){
+                    return res.status(400).json({message:"uploading error:" +error.message})
+                }
+                const reportedID = req.user.id;
+                const {
+                    reportType,
+                    teamLeader,
+                    numberOfWorkers,
+                    progress,
+                    reportMessage, 
+                    location,
+                    taskList,
+                    site
+                } = req.body;
+    
+                const files = req.files;
+                let imagesPaths = [];
+                const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+                if (files) {
+                    files.map((file) => {
+                        imagesPaths.push(`${basePath}${file.filename}`);
+                    });
+                }
+                else{
+                    return res.status(400).send('No image in the request');
+                }
 
-            const reporterId = req.query.id;
-            //const workers = req.body.workers
-            const {
-                reportType,
-                teamLeader,
-                numberOfWorkers, 
-                workers, 
-                taskList,
-                progress, 
-                tools, 
-                reportMessage, 
-                reportImages, 
-                location,
-                //reportTime, reporter
-                site} = req.body;
-           
-            if(teamLeader ==="" || reportMessage === "" || reportImages === "" ){
-                return  res.status(400).json ({message:"Empty fields"})}
+                console.log({message:'impagePaths created are: ' + imagesPaths})
 
-            const newReport = new Report({
-                reportType,
-                teamLeader, 
-                numberOfWorkers, 
-                workers, 
-                taskList, 
-                progress, 
-                tools, 
-                reportMessage, 
-                // reportImages:`${basePath}${fileName}`,
-                reporter:reporterId,
-                location,
-                site
-                //reportTime
+                newReport = new Report({
+                    reportType,
+                    teamLeader,
+                    numberOfWorkers,
+                    progress,
+                    reportMessage, 
+                    location,
+                    site,
+                    reporter:reportedID,
+                    taskList,
+                    reportImages: imagesPaths, // "http://localhost:3000/public/upload/image-2323232",
+                });
+    
+                newReport.save().then(newReport => {
+                    newReport === newReport; // true
+    
+                    if(!newReport) 
+                    return res.status(500).send('The product cannot be created')
+
+                    // else
+                    // return res.status(201).json("report created successfully");
+                   
+                    
+                  });
+
             })
-            await newReport.save()
-            return res.status(200).json({message: "Reported Successfully"});
+            
+
+            if(!task){
+                return res.status(200).json({message: 'report created successfully with no task List', data: newReport})
+            }
+
+            var newReportId = newReport.id;
+            updatedNewReport = await Report.findOneAndUpdate(
+                {
+                    id: newReportId
+                },
+                {
+                    $push:{
+                        taskList: task
+                    },
+                }
+                );
+            if(!updatedNewReport){
+                return res.status(200).json({message: 'report created but taskList could not be added', data: newReport})
+            }
+            else{
+                return res.status(200).json({message:'report added succesfully', data: updatedNewReport})
+            }  
         }
-        catch(e){
-            return  res.status(500).json({message: e.message})
+        catch(error){
+            res.status(500).send('Server error: ' + error);
         }
-    }),
-    deletedReport: ('/:id',(req, res) => {
+        
+    },
+    deleteReport: ('/:id',(req, res) => {
         try{
             const reportID = req.query.id;
             Report.findByIdAndDelete(reportID, function (error, docs){
@@ -88,15 +144,15 @@ const reportController = {
                     return res.status(201).json("report successfully deleted");
                 }
             })
-        }catch(e){
+        }catch(error){
             res.status(500).send('Server error: ' + error);
         }
     }),
     adminUpdates: async (req, res) => {
-        const {approvalStatus, adminComment, qualityCheck 
-        } = req.body;
-        const reportId = req.query.id;
         try{
+            const {approvalStatus, adminComment, qualityCheck 
+            } = req.body;
+            const reportId = req.query.id;
             let report = await Report.findOneAndUpdate(
                 {_id: reportId},
                 {
@@ -109,26 +165,54 @@ const reportController = {
                 // await res.status(201).json({message: "update successful", user});
                 await res.status(201).json({message: "report updated successfully"});
             }
-        }catch(e){
-            return res.status(500).json({message: e.message})
+        }
+        catch(error){
+            return res.status(500).json({message: error.message})
         }
     },
     getReports: async (req, res) => {
-        const report = await Report.find(filter).populate('users');
+        try{
+            const report = await Report.find(filter).populate('users');
 
         if(!report) {
             res.status(500).json({success: false})
         } 
         res.send(report);
+        }
+        catch(error){
+            return res.status(500).json({message: error.message})
+        }
     },
-    gerRepot: async (req, res) => {
-        const report = await Report.findById(req.params.id).populate('users');
+    gerReport: ('/:userID',async (req, res) => {
+        try{
+
+            // if(!mongoose.isValidObjectId(req.params.id)) {
+            //     return res.status(400).send('Invalid user Id')
+            //  }
+
+            console.log(req.query.userID)
+            const reporter = req.query.userID
+            const user = await User.findById(reporter);
+            if(!user) return res.status(400).send({message:'Invalid User'})
+         
+            //test if this gives all the reports with that user id
+            //populate won't send password ofthe user
+            const report = await Report.find({reporter});
 
         if(!report) {
-            res.status(500).json({success: false})
-        } 
-        res.send(report);
-    }
+            res.status(500).json({success: false, message: 'no report found'})
+        }
+        return res.status(200).json({
+            success: true, 
+            message:'reports found' ,
+            data: report
+        }); 
+        
+        }
+        catch(error){
+            return res.status(500).json({message: error.message})
+        }
+    })
 }
 
 module.exports =  reportController;

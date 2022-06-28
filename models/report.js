@@ -5,35 +5,31 @@ const reportSchema = new mongoose.Schema({
     reportType: {
         type:String,
         default: "ClockIn",
-        required: true
+        // required: [true, 'report type not specified'],
     },
     reporter:{
         type:  mongoose.Schema.Types.ObjectId,
         ref: 'users',
-        required: true
+        // required: [true, 'user not recognised'],
         // ref: 'Category'
         
     },
     teamLeader: {
         type:  mongoose.Schema.Types.ObjectId,
-        required: true,
+        // required: [true, 'teamLeader not declared'],
         ref:'users'
         //default: {reporter: new mongoose.Reporter}
     },
-    numberOfWorkers:{
-        type: Number
-
-    },
+    numberOfWorkers:Number,
     workers:[{
         name:String,
-        code:String
+        code:String,
+        phoneNumber:String,
     }],
-    taskList:[{ 
+    taskList:[{
         type: String
     }],
-    progress:[{
-        type: String
-    }],
+    progress:String,
     tools:[{
         name:String,
         amount:Number,
@@ -44,38 +40,33 @@ const reportSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    reportMessage:{
-        type:String,
-    },
-    adminComment:{
-        type: String,
-    },
+    reportMessage:String,
+    adminComment:String,
     //more on this
-    qualityCheck:{
-        type: String,
-    },
+    qualityCheck:String, 
     //this need to allow multiple images to be stored in an array
     reportImages:[{
         type: String
-        // type:Buffer,
-        // data: Buffer,
-        // contentType: String
     }],
     reportTime:{
         type:Date,
         default: Date.now
     },
-    site:{
-        type:String,
-    },
-    location:{
-        // type:mongoose.map(mongoose.)
-    }
+    site:String,
+    location:String
 },
 {
     timestamps: true
 }
 )
+
+reportSchema.virtual('id').get(function () {
+    return this._id.toHexString();
+});
+
+reportSchema.set('toJSON', {
+    virtuals: true,
+});
 
 const Report = mongoose.model('clock reports', reportSchema);
 

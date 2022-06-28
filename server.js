@@ -21,12 +21,15 @@ const app = express() ;
 app.use(bodyParser.json())
 app.use(morgan('tiny'));
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
+// app.use(
+//     express.urlencoded({ extended: true })
+// );
 app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
 app.use(cors());
 
 app.use('/api/users', userRoute);
 app.use('/api/report', reportRoute);
 
-const port = process.env.PORT || 2000;
+const port = process.env.PORT || 80;
 app.listen(port, () => console.log(`Listening on port ${port}`));
