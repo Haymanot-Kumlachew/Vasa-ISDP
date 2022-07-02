@@ -15,9 +15,9 @@ const reportSchema = new mongoose.Schema({
         
     },
     teamLeader: {
-        type:  mongoose.Schema.Types.ObjectId,
+        type:  String,
         // required: [true, 'teamLeader not declared'],
-        ref:'users'
+        // ref:'users'
         //default: {reporter: new mongoose.Reporter}
     },
     numberOfWorkers:Number,

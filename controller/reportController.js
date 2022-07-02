@@ -42,95 +42,101 @@ const reportController = {
             
             // const category = await Category.findById(req.body.category);
             // if(!category) return res.status(400).send('Invalid Category')
-        try{
-            var newReport = new Report;
-            let task =[];
-            task = req.body.taskList;
-            console.log({message:'the task list found are: ' + task})
+            try{
+                var newReport = new Report;
+                let task =[];
+                task = req.body.taskList;
+                console.log({message:'the task list found are: ' + task})
 
-            uploadOptions(req, res, function(error){
-                if(error){
-                    return res.status(400).json({message:"uploading error:" +error.message})
-                }
-                const reportedID = req.user.id;
-                const {
-                    reportType,
-                    teamLeader,
-                    numberOfWorkers,
-                    progress,
-                    reportMessage, 
-                    location,
-                    taskList,
-                    site
-                } = req.body;
-    
-                const files = req.files;
-                let imagesPaths = [];
-                const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
-                if (files) {
-                    files.map((file) => {
-                        imagesPaths.push(`${basePath}${file.filename}`);
+                uploadOptions(req, res, function(error){
+                    if(error){
+                        return res.status(400).json({message:"uploading error:" +error.message})
+                    }
+                    const reportedID = req.user.id;
+                    const {
+                        reportType,
+                        teamLeader,
+                        numberOfWorkers,
+                        progress,
+                        reportMessage, 
+                        location,
+                        taskList,
+                        site
+                    } = req.body;
+        
+                    const files = req.files;
+                    let imagesPaths = [];
+                    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+                    if (files) {
+                        files.map((file) => {
+                            imagesPaths.push(`${basePath}${file.filename}`);
+                        });
+                    }
+                    else{
+                        return res.status(400).send('No image in the request');
+                    }
+
+                    console.log({message:'impagePaths created are: ' + imagesPaths})
+
+                    newReport = new Report({
+                        reportType,
+                        teamLeader,
+                        numberOfWorkers,
+                        progress,
+                        reportMessage, 
+                        location,
+                        site,
+                        reporter:reportedID,
+                        taskList,
+                        reportImages: imagesPaths, // "http://localhost:3000/public/upload/image-2323232",
                     });
+        
+                    newReport.save().then(newReport => {
+                        newReport === newReport; // true
+        
+                        if(!newReport) 
+                        return res.status(500).send('The product cannot be created')
+
+                        // else
+                        // return res.status(201).json("report created successfully");
+                    
+                        
+                    });
+
+                })
+                
+
+                if(!task){
+                    return res.status(200).json({
+                        message: 'report created successfully with no task List', 
+                        data: newReport
+                    })
+                }
+
+                var newReportId = newReport.id;
+                updatedNewReport = await Report.findOneAndUpdate(
+                    {
+                        id: newReportId
+                    },
+                    {
+                        $push:{
+                            taskList: task
+                        },
+                    }
+                    );
+                if(!updatedNewReport){
+                    return res.status(200).json({
+                        message: 'report created but taskList could not be added', 
+                        data: newReport
+                    })
                 }
                 else{
-                    return res.status(400).send('No image in the request');
-                }
-
-                console.log({message:'impagePaths created are: ' + imagesPaths})
-
-                newReport = new Report({
-                    reportType,
-                    teamLeader,
-                    numberOfWorkers,
-                    progress,
-                    reportMessage, 
-                    location,
-                    site,
-                    reporter:reportedID,
-                    taskList,
-                    reportImages: imagesPaths, // "http://localhost:3000/public/upload/image-2323232",
-                });
-    
-                newReport.save().then(newReport => {
-                    newReport === newReport; // true
-    
-                    if(!newReport) 
-                    return res.status(500).send('The product cannot be created')
-
-                    // else
-                    // return res.status(201).json("report created successfully");
-                   
-                    
-                  });
-
-            })
-            
-
-            if(!task){
-                return res.status(200).json({message: 'report created successfully with no task List', data: newReport})
+                    return res.status(200).json({message:'report added succesfully', data: updatedNewReport})
+                }  
             }
-
-            var newReportId = newReport.id;
-            updatedNewReport = await Report.findOneAndUpdate(
-                {
-                    id: newReportId
-                },
-                {
-                    $push:{
-                        taskList: task
-                    },
-                }
-                );
-            if(!updatedNewReport){
-                return res.status(200).json({message: 'report created but taskList could not be added', data: newReport})
+            catch(error){
+                res.status(500).send('Server error: ' + error);
             }
-            else{
-                return res.status(200).json({message:'report added succesfully', data: updatedNewReport})
-            }  
-        }
-        catch(error){
-            res.status(500).send('Server error: ' + error);
-        }
         
     },
     deleteReport: ('/:id',(req, res) => {

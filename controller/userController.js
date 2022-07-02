@@ -7,18 +7,35 @@ const jwt = require('jsonwebtoken');
 const userController = {
     addNewUser: async (req, res) => {
         try{
-            const {name, email, password, phoneNumber, vasaID, role, site, token} = req.body;
+            const {
+                name, 
+                email, 
+                password, 
+                phoneNumber, 
+                vasaID, 
+                role, 
+                site, 
+                token
+            } = req.body;
             const user = await User.findOne({email})
-            if(user) return res.status(400).json({message: "the email already exists"})
+            if(user) return res.status(200).json({message: "the email already exists", status: 'error'})
             if(name ==="" || email === "" || password === "" ){
-                return  res.status(400).json ({message:"Empty fields"})};
+                return  res.status(200).json ({message:"Empty fields", status:'error'})
+            };
             
             const newUser = new User({
-                name, email, password, phoneNumber, vasaID, role, site, token
+                name, 
+                email, 
+                password, 
+                phoneNumber, 
+                vasaID, 
+                role, 
+                site, 
+                token
             });
 
             await newUser.save()
-            return res.status(200).json({message: "Registered successfully"});
+            return res.status(200).json({message: "Registered successfully", status:'success'});
         }
         catch(error){
             return  res.status(500).json({message: error.message})
@@ -28,16 +45,20 @@ const userController = {
         try{
             const {email, password,} = req.body;
 
-            if (email == "" || password == "") res.json({status: "Failed", message: "Empty credentials supplied",})
+            if (email == "" || password == "") res.json({
+                status: "error", 
+                message: "Empty credentials supplied"
+            })
             //check if user exists
-            const user = await User.findOne({email})
-            if (!user) return res.status(400).json({message: "User not found"})
+            var user = await User.findOne({email})
+            if (!user) return res.status(200).json({message: "User not found", status: 'error'})
             const isMatch = await bcrypt.compare(password, user.password)
             if(!isMatch)
                 return res.status(400).json({message: "Incorrect password."})
 
+                 user = await User.findOne({email}).select('-password')
             // If login success , create access token and refresh token
-            const accesstoken = createAccessToken({id: user._id})
+            const accessToken = createAccessToken({id: user._id})
             const refreshtoken = createRefreshToken({id: user._id})
 
             res.cookie('refreshtoken', refreshtoken, {
@@ -46,10 +67,14 @@ const userController = {
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7d
             })
 
-            res.status(200).json({accesstoken, message: "Login Successful"})
+            res.status(200).json({
+                accessToken, 
+                message: "Login Successful", 
+                data: user, 
+                status: 'success'})
         }
         catch(error){
-            return res.status(500).json({message: error.message})
+            return res.status(500).json({message: error.message, status: 'error'})
         }
     },
     logout: async (req, res) =>{
@@ -57,13 +82,16 @@ const userController = {
             res.clearCookie('refreshtoken', {path: '/api/users/refresh_token'})
             return res.json({message: "Logged out"})
         } catch (error) {
-            return res.status(500).json({message: error.message})
+            return res.status(500).json({message: error.message, status: 'error'})
         }
     },
     getUser: async (req, res) =>{
         try {
             let user = await User.findById(req.user.id).select('-password')
-            if(!user) return res.status(400).json({message: "User does not exist."})
+            if(!user) return res.status(200).json({
+                message: "User does not exist.", 
+                status: 'error'
+            })
 
             res.status(200).json({data: user})
         } catch (error) {
@@ -79,11 +107,14 @@ const userController = {
                     console.log(error)
                 }
                 else{
-                    return res.status(201).json({message:"user successfully deleted"});
+                    return res.status(201).json({
+                        message:"user successfully deleted", 
+                        status: 'success'
+                    });
                 }
             })
         } catch (error) {
-            res.status(500).send('Server error: ' + error.message);
+            res.status(500).send({message: 'Server error: ' + error.message, status: 'error' });
     
         }
     }),
@@ -93,12 +124,19 @@ const userController = {
             const  userId  =  req.user.id;
             const pass =  bcrypt.genSaltSync(10)
             const newPassword = await bcrypt.hashSync(req.body.password, pass);
-            const user = await User.findOneAndUpdate({_id: userId}, { password: newPassword}, {new: true});
-            if(user) return res.status(200).json({message:"password updated successfully"});
+            const user = await User.findOneAndUpdate(
+                {_id: userId}, 
+                { password: newPassword}, 
+                {new: true}
+                );
+            if(user) return res.status(200).json({
+                message:"password updated successfully", 
+                status: 'success'
+            });
             }
             catch(error)
             {
-                return res.status(500).json({message: error.message})
+                return res.status(500).json({message: error.message, status: 'error'})
             }
     },
     updateUserInfo: async (req, res) => {
@@ -125,34 +163,47 @@ const userController = {
             await user.save()
             if (user) {
                 // await res.status(201).json({message: "update successful", user});
-                await res.status(201).json({message: "update successful"});
+                await res.status(201).json({message: "update successful", status: 'success'});
             }
         }catch(error){
-            return res.status(500).json({message: error.message})
+            return res.status(500).json({message: error.message, status: 'error'})
         }
     },
     refreshToken: (req, res) =>{
         try {
             const rf_token = req.cookies.refreshtoken;
-            if(!rf_token) return res.status(400).json({message: "Please Login or Register"})
+            if(!rf_token) return res.status(200).json({
+                message: "Please Login or Register", 
+                status: 'error'})
             jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (error, user) =>{
-                if(error) return res.status(400).json({message: "Not authenticated"})
+                if(error) return res.status(200).json({message: "Not authenticated", status: 'error'})
 
                 const accesstoken = createAccessToken({id: user.id})
 
-                return res.status(200).json({accesstoken})
+                return res.status(200).json({
+                    accesstoken, 
+                    message:'token refreshed', 
+                    status:'success'
+                })
             })
 
         } catch (error) {
-            return res.status(500).json({message: error.message})
+            return res.status(500).json({
+                message: error.message, 
+                status: 'error'
+            })
         }
     },
     listAllUsers: async (req, res) => {
         try{
             let users = await User.find({})
-            await res.status(201).json({users})
+            await res.status(201).json({
+                data: users, 
+                message:'list of users generated', 
+                status: 'success'
+            })
         }  catch(error){
-            res.status(500).send(error.message);
+            res.status(500).send({message: error.message, status: 'error'});
         }
     }   
 }

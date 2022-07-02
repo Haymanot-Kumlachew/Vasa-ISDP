@@ -48,12 +48,6 @@ const userSchema = new mongoose.Schema({
     },
     site:{
         type:String,
-    },
-    token:{
-        token: {
-            type: String,
-            //required: true
-        }
     }
 },
 {
