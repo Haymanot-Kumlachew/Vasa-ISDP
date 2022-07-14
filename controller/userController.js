@@ -45,7 +45,7 @@ const userController = {
         try{
             const {email, password,} = req.body;
 
-            if (email == "" || password == "") res.json({
+            if (email == "" || password == "") res.status(202).json({
                 status: "error", 
                 message: "Empty credentials supplied"
             })

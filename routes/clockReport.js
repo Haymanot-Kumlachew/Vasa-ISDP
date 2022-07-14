@@ -10,7 +10,7 @@ router.post('/create', auth, reportController.addReport);
 router.post('/delete', reportController.deleteReport);
 router.put('/approval', reportController.adminUpdates);
 router.get('/getReports', reportController.getReports);
-router.get('/getReport', reportController.gerReport);
+router.get('/getReport', reportController.getReport);
 
 // router.put('/update/info', auth, userController.updateUserInfo)
 

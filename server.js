@@ -8,7 +8,6 @@ const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path')
 
-
 const userRoute = require('./routes/user')
 const reportRoute = require('./routes/clockReport')
 const connectDB = require('./config/db');

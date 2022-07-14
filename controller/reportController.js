@@ -1,52 +1,39 @@
 const Report = require('../models/report')
-const user = require('../models/user')
 const multer = require('multer');
-const fs = require('fs');
 const User = require('../models/user');
-const mongoose = require('mongoose');
 
-// const FILE_TYPE_MAP = {
-//     'image/png': 'png',
-//     'image/jpeg': 'jpeg',
-//     'image/jpg': 'jpg'
-// };
+const FILE_TYPE_MAP = {
+    'image/png': 'png',
+    'image/jpeg': 'jpeg',
+    'image/jpg': 'jpg'
+};
+
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         // const isValid = FILE_TYPE_MAP[file.mimetype];
-        //let uploadError = new Error('invalid image type');
-
-        const dir = "./public/uploads"
-
-        if(!fs.existsSync(dir)){
-            fs.mkdir(dir);
-        }
+        // let uploadError = new Error('invalid image type');
 
         // if (isValid) {
-        //     uploadError = null;
+            uploadError = null;
         // }
-        cb(null, dir);
+        cb(uploadError, 'public/uploads');
     },
+
     filename: function (req, file, cb) {
-        // const fileName = file.originalname.split(' ').join('-');
-        // const extension = FILE_TYPE_MAP[file.mimetype];
-        // cb(null, `${fileName}-${Date.now()}.${extension}`);
-        cb(null, file.originalname);
+        const fileName = file.originalname.split(' ').join('-');
+        const extension = FILE_TYPE_MAP[file.mimetype];
+        // const extension = file.mimetype;
+        cb(null, `${fileName}-${Date.now()}.${extension}`);
     }
 });
 
-const uploadOptions = multer({ storage: storage }).array('reportImages',10);
+const uploadOptions = multer({ storage: storage }).array('reportImages',20);
 
 const reportController = {
     addReport:  async (req, res) =>{  
-            
-            // const category = await Category.findById(req.body.category);
-            // if(!category) return res.status(400).send('Invalid Category')
             try{
                 var newReport = new Report;
-                let task =[];
-                task = req.body.taskList;
-                console.log({message:'the task list found are: ' + task})
 
                 uploadOptions(req, res, function(error){
                     if(error){
@@ -56,12 +43,12 @@ const reportController = {
                     const {
                         reportType,
                         teamLeader,
-                        numberOfWorkers,
-                        progress,
-                        reportMessage, 
-                        location,
+                        site,
                         taskList,
-                        site
+                        numberOfWorkers,
+                        reportMessage,
+                        progress,
+                        location,
                     } = req.body;
         
                     const files = req.files;
@@ -72,67 +59,36 @@ const reportController = {
                             imagesPaths.push(`${basePath}${file.filename}`);
                         });
                     }
-                    else{
-                        return res.status(400).send('No image in the request');
-                    }
+                    // else{
+                    //     return res.status(400).send('No image in the request');
+                    // }
 
                     console.log({message:'impagePaths created are: ' + imagesPaths})
 
                     newReport = new Report({
                         reportType,
-                        teamLeader,
-                        numberOfWorkers,
-                        progress,
-                        reportMessage, 
-                        location,
-                        site,
                         reporter:reportedID,
+                        teamLeader,
+                        site,
                         taskList,
+                        numberOfWorkers,
                         reportImages: imagesPaths, // "http://localhost:3000/public/upload/image-2323232",
+                        reportMessage,
+                        progress,
+                        location,
                     });
         
                     newReport.save().then(newReport => {
                         newReport === newReport; // true
         
-                        if(!newReport) 
-                        return res.status(500).send('The product cannot be created')
-
-                        // else
-                        // return res.status(201).json("report created successfully");
-                    
-                        
+                        if(newReport) 
+                        return res.status(200).json({
+                            message: 'report created successfully', 
+                            data: newReport,
+                            status: 'success',
+                        })
                     });
-
-                })
-                
-
-                if(!task){
-                    return res.status(200).json({
-                        message: 'report created successfully with no task List', 
-                        data: newReport
-                    })
-                }
-
-                var newReportId = newReport.id;
-                updatedNewReport = await Report.findOneAndUpdate(
-                    {
-                        id: newReportId
-                    },
-                    {
-                        $push:{
-                            taskList: task
-                        },
-                    }
-                    );
-                if(!updatedNewReport){
-                    return res.status(200).json({
-                        message: 'report created but taskList could not be added', 
-                        data: newReport
-                    })
-                }
-                else{
-                    return res.status(200).json({message:'report added succesfully', data: updatedNewReport})
-                }  
+                }) 
             }
             catch(error){
                 res.status(500).send('Server error: ' + error);
@@ -189,7 +145,7 @@ const reportController = {
             return res.status(500).json({message: error.message})
         }
     },
-    gerReport: ('/:userID',async (req, res) => {
+    getReport: ('/:userID',async (req, res) => {
         try{
 
             // if(!mongoose.isValidObjectId(req.params.id)) {
