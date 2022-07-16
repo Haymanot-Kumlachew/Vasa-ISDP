@@ -11,12 +11,12 @@ const FILE_TYPE_MAP = {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        // const isValid = FILE_TYPE_MAP[file.mimetype];
-        // let uploadError = new Error('invalid image type');
+        const isValid = FILE_TYPE_MAP[file.mimetype];
+        let uploadError = new Error('invalid image type');
 
-        // if (isValid) {
+        if (isValid) {
             uploadError = null;
-        // }
+        }
         cb(uploadError, 'public/uploads');
     },
 
@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
         const fileName = file.originalname.split(' ').join('-');
         const extension = FILE_TYPE_MAP[file.mimetype];
         // const extension = file.mimetype;
-        cb(null, `${fileName}-${Date.now()}.${extension}`);
+        cb(null, `${Date.now()}-${fileName}`);
     }
 });
 
